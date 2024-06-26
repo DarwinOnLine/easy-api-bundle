@@ -3,6 +3,7 @@
 namespace EasyApiBundle\Services;
 
 use EasyApiBundle\Entity\AbstractBaseEntity;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\CacheItem;
@@ -12,18 +13,14 @@ use Symfony\Component\Serializer\SerializerInterface;
 class EntitySerializer
 {
     protected const CACHE_NAME_PREFIX = 'easySerializerCache.';
-    protected SerializerInterface $serializer;
-    protected AdapterInterface $cache;
 
     /**
      * EntitySerializer constructor.
      * @param SerializerInterface $serializer
      * @param AdapterInterface $cache
      */
-    public function __construct(SerializerInterface $serializer, AdapterInterface $cache)
+    public function __construct(protected readonly SerializerInterface $serializer, protected readonly CacheItemPoolInterface $cache)
     {
-        $this->serializer = $serializer;
-        $this->cache = $cache;
     }
 
     /**

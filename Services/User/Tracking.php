@@ -8,7 +8,8 @@ use EasyApiBundle\Entity\User\AbstractConnectionHistory as ConnectionHistory;
 use EasyApiBundle\Services\AbstractService;
 use Namshi\JOSE\JWS;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -20,9 +21,9 @@ class Tracking extends AbstractService
 
     protected LoggerInterface $logger;
 
-    public function __construct(ContainerInterface $container, LoggerInterface $logger, TokenStorageInterface $tokenStorage = null)
+    public function __construct(ServiceLocator $serviceLocator, ParameterBagInterface $parameterBag, LoggerInterface $logger, TokenStorageInterface $tokenStorage = null)
     {
-        parent::__construct($container, $tokenStorage);
+        parent::__construct($serviceLocator, $parameterBag, $tokenStorage);
         $this->logger = $logger;
     }
 

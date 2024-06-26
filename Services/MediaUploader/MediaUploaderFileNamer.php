@@ -3,7 +3,7 @@
 namespace EasyApiBundle\Services\MediaUploader;
 
 use EasyApiBundle\Entity\MediaUploader\AbstractMedia;
-use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Vich\UploaderBundle\Mapping\PropertyMapping;
 use Vich\UploaderBundle\Naming\ConfigurableInterface;
@@ -14,19 +14,13 @@ use Vich\UploaderBundle\Util\Transliterator;
 
 class MediaUploaderFileNamer implements NamerInterface
 {
-    protected ContainerInterface $container;
-
-    protected SluggerInterface $slugger;
-
     /**
      * DirectoryNamer constructor.
      *
-     * @param ContainerInterface $container
+     * @param SluggerInterface $slugger
      */
-    public function __construct(ContainerInterface $container, SluggerInterface $slugger)
+    public function __construct(protected readonly ServiceLocator $serviceLocator, protected readonly SluggerInterface $slugger)
     {
-        $this->container = $container;
-        $this->slugger = $slugger;
     }
 
     /**
@@ -47,12 +41,12 @@ class MediaUploaderFileNamer implements NamerInterface
             if(self::isVichNamer($namerClassName)) {
                 // Vich namer
                 $name = self::getVichNamer($namerClassName)->name($object, $mapping);
-            } elseif($object->getFileNamer() !== self::class) {
+             } elseif($object->getFileNamer() !== self::class) {
                 // custom service namer
-                $name = $this->container->get($namerClassName)->name($object, $mapping);
+                $name = $this->serviceLocator->get($namerClassName)->name($object, $mapping);
             } else {
                 // default name
-                $name = (new OrignameNamer())->name($object, $mapping);
+                $name = (new OrignameNamer(new Transliterator($this->slugger)))->name($object, $mapping);
             }
         }
 

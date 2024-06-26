@@ -10,12 +10,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 abstract class AbstractObjectSerializer implements NormalizerInterface, ServiceSubscriberInterface
 {
-    /** @var ContainerInterface */
-    protected $container;
-
-    public function __construct(ContainerInterface $container)
+    public function __construct(protected readonly ContainerInterface $container)
     {
-        $this->container = $container;
     }
 
     /**
@@ -43,7 +39,7 @@ abstract class AbstractObjectSerializer implements NormalizerInterface, ServiceS
     /**
      * @return array|string[]
      */
-    public static function getSubscribedServices()
+    public static function getSubscribedServices(): array
     {
         return [ObjectNormalizer::class];
     }

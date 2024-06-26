@@ -69,6 +69,6 @@ trait CoreUtilsTrait
      */
     protected function getCache(): AdapterInterface
     {
-        return $this->getContainer()->get('cache.app');
+        return $this->getServiceLocator()->get('cache.app');
     }
 }

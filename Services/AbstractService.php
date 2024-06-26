@@ -9,6 +9,8 @@ use EasyApiBundle\Util\CoreUtilsTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,9 +26,14 @@ abstract class AbstractService implements ServiceSubscriberInterface
     use CoreUtilsTrait;
 
     /**
-     * @var ContainerInterface
+     * @var ServiceLocator
      */
-    protected ContainerInterface $container;
+    protected readonly ServiceLocator $serviceLocator;
+
+    /**
+     * @var ParameterBagInterface
+     */
+    protected readonly ParameterBagInterface $parameterBag;
 
     /**
      * @var AbstractUser|null
@@ -34,15 +41,16 @@ abstract class AbstractService implements ServiceSubscriberInterface
     protected $user;
 
     /**
-     * @param ContainerInterface $container
+     * @param ServiceLocator $serviceLocator
      * @param TokenStorageInterface|null $tokenStorage
      * @todo: replace by ServiceLocator
      * see https://symfony.com/doc/current/service_container/service_subscribers_locators.html
      *
      */
-    public function __construct(ContainerInterface $container, TokenStorageInterface $tokenStorage = null)
+    public function __construct(ServiceLocator $serviceLocator, ParameterBagInterface $parameterBag, TokenStorageInterface $tokenStorage = null)
     {
-        $this->container = $container;
+        $this->serviceLocator = $serviceLocator;
+        $this->parameterBag = $parameterBag;
         $this->user = ($tokenStorage && $token = $tokenStorage->getToken()) ? $token->getUser() : null;
     }
 
@@ -56,15 +64,15 @@ abstract class AbstractService implements ServiceSubscriberInterface
      */
     protected function get($id, int $invalidBehavior = Container::EXCEPTION_ON_INVALID_REFERENCE): ?object
     {
-        return $this->container->get($id, $invalidBehavior);
+        return $this->serviceLocator->get($id, $invalidBehavior);
     }
 
     /**
      * @return ContainerInterface
      */
-    protected function getContainer(): ContainerInterface
+    protected function getServiceLocator(): ServiceLocator
     {
-        return $this->container;
+        return $this->serviceLocator;
     }
 
     /**
@@ -75,7 +83,7 @@ abstract class AbstractService implements ServiceSubscriberInterface
     protected function getDoctrine(): ?Registry
     {
         try {
-            return $this->container->get('doctrine');
+            return $this->serviceLocator->get('doctrine');
         } catch (\Exception $e) {
             return null;
         }
@@ -95,7 +103,7 @@ abstract class AbstractService implements ServiceSubscriberInterface
      */
     public function getParameter($name)
     {
-        return $this->container->getParameter($name);
+        return $this->parameterBag->get($name);
     }
 
     /**
@@ -112,10 +120,10 @@ abstract class AbstractService implements ServiceSubscriberInterface
      */
     protected function render(string $view, array $parameters = [], Response $response = null): ?Response
     {
-        if ($this->container->has('templating')) {
-            $content = $this->container->get('templating')->render($view, $parameters);
-        } elseif ($this->container->has('twig')) {
-            $content = $this->container->get('twig')->render($view, $parameters);
+        if ($this->serviceLocator->has('templating')) {
+            $content = $this->serviceLocator->get('templating')->render($view, $parameters);
+        } elseif ($this->serviceLocator->has('twig')) {
+            $content = $this->serviceLocator->get('twig')->render($view, $parameters);
         } else {
             throw new \LogicException('You can not use the "render" method if the Templating Component or the Twig Bundle are not available. Try running "composer require symfony/twig-bundle".');
         }
@@ -140,7 +148,7 @@ abstract class AbstractService implements ServiceSubscriberInterface
      */
     protected function createForm(string $type, $data = null, array $options = []): FormInterface
     {
-        return $this->container->get('form.factory')->create($type, $data, $options);
+        return $this->serviceLocator->get('form.factory')->create($type, $data, $options);
     }
 
     /**

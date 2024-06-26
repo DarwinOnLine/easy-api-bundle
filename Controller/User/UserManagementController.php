@@ -2,6 +2,7 @@
 
 namespace EasyApiBundle\Controller\User;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use EasyApiBundle\Controller\AbstractApiController;
 use OpenApi\Annotations as OA;
@@ -33,5 +34,14 @@ class UserManagementController extends AbstractApiController
     public function getMe(): Response
     {
         return $this->renderEntityResponse($this->getUser(), static::serializationGroups, [AbstractNormalizer::ATTRIBUTES => static::serializationAttributes]);
+    }
+
+    protected function getDoctrine(): ?Registry
+    {
+        try {
+            return $this->container->get('doctrine');
+        } catch (\Exception) {
+            return null;
+        }
     }
 }

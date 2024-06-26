@@ -74,4 +74,9 @@ class UserProvider implements UserProviderInterface
     {
         return $this->entityManager->getRepository($this->getUserClass())->findByUsername($username);
     }
+
+    public function loadUserByIdentifier(string $identifier): UserInterface
+    {
+        return $this->loadUserByUsername($identifier);
+    }
 }
